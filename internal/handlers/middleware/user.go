@@ -9,30 +9,25 @@ import (
 	"github.com/google/uuid"
 )
 
-
-
-
-func RequireUserAuth() gin.HandlerFunc{
+func RequireUserAuth() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		session := sessions.Default(ctx)
 
 		userID := session.Get("user_id")
-		if userID == nil{
-			ctx.JSON(http.StatusUnauthorized,utils.ErrorResponse("unauthorized",nil))
+		if userID == nil {
+			ctx.JSON(http.StatusUnauthorized, utils.ErrorResponse("unauthorized", nil))
 			ctx.Abort()
-			return 
+			return
 		}
 
-
-		uid,err := uuid.Parse(userID.(string))
-		if err != nil{
-			ctx.JSON(http.StatusUnauthorized,utils.ErrorResponse("invalid session id",err))
+		uid, err := uuid.Parse(userID.(string))
+		if err != nil {
+			ctx.JSON(http.StatusUnauthorized, utils.ErrorResponse("invalid session id", err))
 			ctx.Abort()
-			return 
+			return
 		}
 
-
-		ctx.Set("user_id",uid.String())
+		ctx.Set("user_id", uid.String())
 		ctx.Next()
 	}
 }

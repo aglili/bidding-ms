@@ -1,9 +1,7 @@
 package constants
 
-
-
 const (
-	PRODUCTION = "production"
+	PRODUCTION  = "production"
 	DEVELOPMENT = "development"
-	STAGING = "staging"
+	STAGING     = "staging"
 )

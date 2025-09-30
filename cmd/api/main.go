@@ -10,12 +10,8 @@ import (
 	"github.com/aglili/auction-app/internal/routes"
 )
 
-
-
-
-func main()  {
+func main() {
 	cfg := config.LoadConfig()
-
 
 	db, err := config.ConnectToDB(cfg)
 	if err != nil {
@@ -23,19 +19,17 @@ func main()  {
 	}
 	defer db.Close()
 
-
-	prov := provider.NewProvider(cfg,db)
-
+	prov := provider.NewProvider(cfg, db)
 
 	routes := routes.SetupRoutes(prov)
 
 	server := &http.Server{
-		Addr: fmt.Sprintf(":%s",cfg.AppPort),
+		Addr:    fmt.Sprintf(":%s", cfg.AppPort),
 		Handler: routes,
 	}
 
-	if err := server.ListenAndServe();err != nil{
-		log.Fatalf("failed to start server: %v",err)
+	if err := server.ListenAndServe(); err != nil {
+		log.Fatalf("failed to start server: %v", err)
 	}
-	
+
 }

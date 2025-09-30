@@ -7,11 +7,7 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-
-
-
-
-func ConnectToDB(cfg *Config) (*sql.DB,error) {
+func ConnectToDB(cfg *Config) (*sql.DB, error) {
 	dsn := fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
 		cfg.DbUser,
@@ -20,14 +16,14 @@ func ConnectToDB(cfg *Config) (*sql.DB,error) {
 		cfg.DbPort,
 		cfg.DbName,
 	)
-	db , err := sql.Open("pgx",dsn)
+	db, err := sql.Open("pgx", dsn)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := db.Ping();err != nil{
-		return  nil, err
+	if err := db.Ping(); err != nil {
+		return nil, err
 	}
 
-	return  db,nil
+	return db, nil
 }
