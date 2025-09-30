@@ -1,22 +1,26 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/aglili/auction-app/internal/domain"
 	"github.com/aglili/auction-app/internal/utils"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 )
 
 type UserHandler struct {
 	service domain.UserService
+	validator *validator.Validate
 }
 
-func NewUserHandler(service domain.UserService) *UserHandler {
+func NewUserHandler(service domain.UserService,validator *validator.Validate) *UserHandler {
 	return &UserHandler{
 		service: service,
+		validator: validator,
 	}
 }
 
@@ -29,7 +33,7 @@ func (h *UserHandler) CreateUserHandler(ctx *gin.Context) {
 	var req CreateUserRequest
 
 	if err := ctx.BindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse("invalid payload", err))
+		utils.RespondWithValidationError(ctx,err)
 		return
 	}
 
@@ -40,12 +44,12 @@ func (h *UserHandler) CreateUserHandler(ctx *gin.Context) {
 
 	createdUser, err := h.service.CreateUser(ctx.Request.Context(), user)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse("sign up failed", err))
+		utils.RespondWithError(ctx,err,"failed to create user")
 		return
 	}
 
 	if err := h.createUserSession(ctx, createdUser.ID.String()); err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse("failed to create session", err))
+		utils.RespondWithError(ctx,err,"failed to create session")
 		return
 	}
 
@@ -74,7 +78,7 @@ func (h *UserHandler) LoginUser(ctx *gin.Context) {
 	var req LoginRequest
 
 	if err := ctx.ShouldBind(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse("invalid payload", err))
+		utils.RespondWithValidationError(ctx, err)
 		return
 	}
 
@@ -85,12 +89,12 @@ func (h *UserHandler) LoginUser(ctx *gin.Context) {
 
 	user, err := h.service.LoginUser(ctx.Request.Context(), loginData)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse("login failed", err))
+		utils.RespondWithError(ctx, err, "Login failed")
 		return
 	}
 
 	if err := h.createUserSession(ctx, user.ID.String()); err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse("failed to create session", err))
+		utils.RespondWithError(ctx, err, "Failed to create session")
 		return
 	}
 
@@ -105,20 +109,28 @@ func (h *UserHandler) LoginUser(ctx *gin.Context) {
 
 func (h *UserHandler) GetUserProfile(ctx *gin.Context) {
 	userID := ctx.GetString("user_id")
+	if userID == "" {
+		response := utils.ErrorResponse("Unauthorized", errors.New("user not authenticated"))
+		if response.Error != nil {
+			response.Error.Code = utils.ErrCodeUnauthorized
+		}
+		ctx.JSON(http.StatusUnauthorized, response)
+		return
+	}
+
 	uid, err := uuid.Parse(userID)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse("invalid session", err))
+		response := utils.ErrorResponse("Invalid user ID", err)
+		if response.Error != nil {
+			response.Error.Code = utils.ErrCodeInvalidInput
+		}
+		ctx.JSON(http.StatusBadRequest, response)
 		return
 	}
 
 	user, err := h.service.GetUserProfile(ctx.Request.Context(), uid)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse("failed to fetch user profile", err))
-		return
-	}
-
-	if user == nil {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse("failed to fetch user profile", err))
+		utils.RespondWithError(ctx, err, "Failed to fetch user profile")
 		return
 	}
 
@@ -128,5 +140,19 @@ func (h *UserHandler) GetUserProfile(ctx *gin.Context) {
 		IsVerified: user.IsVerified,
 	}
 
-	ctx.JSON(http.StatusOK, utils.SuccessResponse("successfuly fetched user profile", userResponse))
+	ctx.JSON(http.StatusOK, utils.SuccessResponse("Successfully fetched user profile", userResponse))
+}
+
+
+
+func (h *UserHandler) Logout(ctx *gin.Context) {
+	session := sessions.Default(ctx)
+	session.Clear()
+
+	if err := session.Save(); err != nil{
+		utils.RespondWithError(ctx,err,"failed to logout")
+		return
+	}
+
+	ctx.JSON(http.StatusOK,utils.SuccessResponse("logout success",nil))
 }

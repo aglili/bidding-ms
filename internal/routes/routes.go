@@ -43,6 +43,7 @@ func SetupRoutes(prov *provider.Provider) http.Handler {
 	protectedUser := v1.Group("/users")
 	protectedUser.Use(middleware.RequireUserAuth())
 	protectedUser.GET("/me", prov.UserHandler.GetUserProfile)
+	protectedUser.POST("/logout",prov.UserHandler.Logout)
 
 	auctions := v1.Group("/auctions")
 	auctions.Use(middleware.RequireUserAuth())

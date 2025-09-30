@@ -29,7 +29,7 @@ func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (*dom
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			// user does not exist
-			return nil, nil
+			return nil, ErrNotFound
 		}
 
 		return nil, err
@@ -47,7 +47,7 @@ func (r *UserRepository) GetUserByID(ctx context.Context, id uuid.UUID) (*domain
 	err := row.Scan(&user.ID, &user.Email, &user.Password, &user.IsVerified, &user.Created_At)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
+			return nil, ErrNotFound
 		}
 
 		return nil, err

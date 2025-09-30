@@ -34,7 +34,7 @@ func (s *AuctionService) GetAuction(ctx context.Context, auctionID uuid.UUID) (*
 		return nil, err
 	}
 
-	// TODO: Handle this properly 
+	// TODO: Handle this properly
 	if auction == nil {
 		return nil, fmt.Errorf("auction not found")
 	}
