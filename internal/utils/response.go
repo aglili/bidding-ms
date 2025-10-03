@@ -19,6 +19,7 @@ const (
 	ErrCodeConflict      = "CONFLICT"
 	ErrCodeUnauthorized  = "UNAUTHORIZED"
 	ErrCodeForbidden     = "FORBIDDEN"
+	ErrCodeNotAllowed   =  "NOT_ALLOWED"
 )
 
 // AppError wraps errors with HTTP status codes and error codes

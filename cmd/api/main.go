@@ -19,7 +19,13 @@ func main() {
 	}
 	defer db.Close()
 
-	prov := provider.NewProvider(cfg, db)
+	redis,err := config.ConnectToRedis(cfg)
+	if err != nil {
+		log.Fatalf("failed to connect to redis : %v", err)
+	}
+	defer redis.Close()
+
+	prov := provider.NewProvider(cfg, db, redis)
 
 	routes := routes.SetupRoutes(prov)
 

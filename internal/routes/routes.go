@@ -50,7 +50,7 @@ func SetupRoutes(prov *provider.Provider) http.Handler {
 	auctions.POST("", prov.AuctionHandler.CreateAuctionHandler)
 	auctions.GET("/me",prov.AuctionHandler.GetUserAuctions)
 	auctions.GET("/:id", prov.AuctionHandler.GetAuction)
-	
+	auctions.POST("/:id/bid",prov.BidHandler.CreateBid)
 
 	return mux
 }

@@ -19,3 +19,13 @@ func GetQueryInt(ctx *gin.Context, key string, defaultValue int) int {
 	}
 	return val
 }
+
+
+
+func GetParamStr(ctx *gin.Context, key string, defaultValue string) string{
+	valStr := ctx.Param(key)
+	if valStr == ""{
+		return defaultValue
+	}
+	return  valStr
+}
