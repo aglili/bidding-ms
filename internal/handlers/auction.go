@@ -1,22 +1,26 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
 	"github.com/aglili/auction-app/internal/domain"
 	"github.com/aglili/auction-app/internal/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 )
 
 type AuctionHandler struct {
 	service domain.AuctionService
+	validator *validator.Validate
 }
 
-func NewAuctionHandler(service domain.AuctionService) *AuctionHandler {
+func NewAuctionHandler(service domain.AuctionService,validator *validator.Validate) *AuctionHandler {
 	return &AuctionHandler{
 		service: service,
+		validator: validator,
 	}
 }
 
@@ -33,36 +37,33 @@ func (h *AuctionHandler) CreateAuctionHandler(ctx *gin.Context) {
 	userID := ctx.GetString("user_id")
 	uid, err := uuid.Parse(userID)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, utils.ErrorResponse("invalid session", err))
+		utils.RespondWithError(ctx, err, "invalid session")
 		return
 	}
 
 	var req CreateAuctionRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse("invalid payload", err))
+		utils.RespondWithValidationError(ctx, err)
 		return
 	}
 
-	// TODO: Move the validation to the services and use playground validate for the validating requests
-
 	startTime, err := time.Parse(time.RFC3339, req.StartTime)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse("invalid start_time format", err))
+		utils.RespondWithError(ctx, err, "invalid start_time format")
 		return
 	}
 	endTime, err := time.Parse(time.RFC3339, req.EndTime)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse("invalid end_time format", err))
+		utils.RespondWithError(ctx, err, "invalid end_time format")
 		return
 	}
 
 	if !endTime.After(startTime) {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse("end_time must be after start_time", nil))
+		utils.RespondWithError(ctx, nil, "end_time must be after start_time")
 		return
 	}
-
 	if startTime.Before(time.Now()) {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse("start_time cannot be in the past", nil))
+		utils.RespondWithError(ctx, nil, "start_time cannot be in the past")
 		return
 	}
 
@@ -78,35 +79,32 @@ func (h *AuctionHandler) CreateAuctionHandler(ctx *gin.Context) {
 
 	createdAuction, err := h.service.CreateAuction(ctx.Request.Context(), auction, uid, req.Images)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse("failed to create auction", err))
+		utils.RespondWithError(ctx, err, "failed to create auction")
 		return
 	}
 
 	ctx.JSON(http.StatusCreated, utils.SuccessResponse("auction created successfully", createdAuction))
 }
 
+
+
+
 func (h *AuctionHandler) GetAuction(ctx *gin.Context) {
 	auctionID := ctx.Param("id")
-
 	if auctionID == "" {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse("auctionID cannot is required", nil))
+		utils.RespondWithError(ctx, nil, "auctionID is required")
 		return
 	}
 
 	auctionUUID, err := uuid.Parse(auctionID)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.ErrorResponse("auctionID cannot is invalid", err))
+		utils.RespondWithError(ctx, err, "invalid auctionID format")
 		return
 	}
 
 	auction, err := h.service.GetAuction(ctx.Request.Context(), auctionUUID)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.ErrorResponse("error fetching auction", err))
-		return
-	}
-
-	if auction == nil {
-		ctx.JSON(http.StatusNotFound, utils.ErrorResponse("auction not found", nil))
+		utils.RespondWithError(ctx, err, "error fetching auction")
 		return
 	}
 
@@ -122,6 +120,59 @@ func (h *AuctionHandler) GetAuction(ctx *gin.Context) {
 		Images:        auction.Images,
 	}
 
-	ctx.JSON(http.StatusOK, utils.SuccessResponse("successfuly fetched auction", auctionResponse))
+	ctx.JSON(http.StatusOK, utils.SuccessResponse("successfully fetched auction", auctionResponse))
+}
 
+
+
+
+func (h *AuctionHandler) GetUserAuctions(ctx *gin.Context) {
+	userID := ctx.GetString("user_id")
+	if userID == "" {
+		utils.RespondWithError(ctx, errors.New("user not authenticated"), "unauthorized")
+		return
+	}
+
+	uid, err := uuid.Parse(userID)
+	if err != nil {
+		utils.RespondWithError(ctx, err, "invalid user ID")
+		return
+	}
+
+	page := utils.GetQueryInt(ctx,"page",1)
+	limit := utils.GetQueryInt(ctx,"limit",10)
+
+	if page < 1 {
+		page = 1
+	}
+
+	if limit < 1 {
+		limit = 10
+	}
+
+
+	auctions,total,err :=  h.service.GetUserAuctions(ctx.Request.Context(),uid,page,limit)
+	if err != nil{
+		utils.RespondWithError(ctx,err,"failed to fetch auctions")
+		return
+	}
+
+	auctionResponse := make([]domain.Auction, 0, len(auctions))
+	for _,auction := range auctions{
+		auctionResponse = append(auctionResponse, domain.Auction{
+			ID: auction.ID,
+			Title: auction.Title,
+			Description: auction.Description,
+			Status: auction.Status,
+			StartingPrice: auction.StartingPrice,
+			CurrentPrice: auction.CurrentPrice,
+			StartTime: auction.StartTime,
+			EndTime: auction.EndTime,
+			CreatedAt: auction.CreatedAt,
+			Images: auction.Images,
+		})
+	}
+	response := utils.PaginatedResponse("successfuly fetched auctions",auctionResponse,page,limit,total)
+
+	ctx.JSON(http.StatusOK,response)
 }

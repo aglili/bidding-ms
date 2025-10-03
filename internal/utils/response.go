@@ -2,8 +2,8 @@ package utils
 
 import (
 	"errors"
+	"math"
 	"net/http"
-
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -158,5 +158,32 @@ func RespondWithValidationError(ctx *gin.Context, err error) {
 		}
 		ctx.JSON(http.StatusBadRequest, response)
 		return
+	}
+}
+
+
+type PaginationMeta struct {
+	Page       int `json:"page"`
+	Limit      int `json:"limit"`
+	Total      int `json:"total"`
+	TotalPages int `json:"total_pages"`
+}
+
+
+
+func PaginatedResponse(message string, data interface{}, page, limit, total int) APIResponse {
+	totalPages := int(math.Ceil(float64(total) / float64(limit)))
+	return APIResponse{
+		Success: true,
+		Message: message,
+		Data: map[string]interface{}{
+			"items": data,
+			"meta": PaginationMeta{
+				Page:       page,
+				Limit:      limit,
+				Total:      total,
+				TotalPages: totalPages,
+			},
+		},
 	}
 }

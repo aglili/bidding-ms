@@ -48,7 +48,9 @@ func SetupRoutes(prov *provider.Provider) http.Handler {
 	auctions := v1.Group("/auctions")
 	auctions.Use(middleware.RequireUserAuth())
 	auctions.POST("", prov.AuctionHandler.CreateAuctionHandler)
+	auctions.GET("/me",prov.AuctionHandler.GetUserAuctions)
 	auctions.GET("/:id", prov.AuctionHandler.GetAuction)
+	
 
 	return mux
 }

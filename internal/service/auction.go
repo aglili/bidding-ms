@@ -2,9 +2,12 @@ package service
 
 import (
 	"context"
-	"fmt"
+	"errors"
+	"net/http"
 
 	"github.com/aglili/auction-app/internal/domain"
+	"github.com/aglili/auction-app/internal/repository"
+	"github.com/aglili/auction-app/internal/utils"
 	"github.com/google/uuid"
 )
 
@@ -31,13 +34,19 @@ func (s *AuctionService) CreateAuction(ctx context.Context, auction *domain.Auct
 func (s *AuctionService) GetAuction(ctx context.Context, auctionID uuid.UUID) (*domain.Auction, error) {
 	auction, err := s.repository.GetAuction(ctx, auctionID)
 	if err != nil {
-		return nil, err
+		if errors.Is(err,repository.ErrNotFound){
+			return  nil, utils.NewAppError(err,"auction not found",utils.ErrCodeNotFound,http.StatusNotFound)
+		}
+
+		return  nil, utils.NewAppError(err,"failed to fetch auction",utils.ErrCodeInternal,http.StatusInternalServerError)
 	}
 
-	// TODO: Handle this properly
-	if auction == nil {
-		return nil, fmt.Errorf("auction not found")
-	}
 
 	return auction, nil
+}
+
+
+
+func (s *AuctionService) GetUserAuctions(ctx context.Context,userID uuid.UUID,page,limit int) ([]*domain.Auction,int,error){
+	return s.repository.GetUserAuctions(ctx,userID,page,limit)
 }

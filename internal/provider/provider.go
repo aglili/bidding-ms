@@ -33,7 +33,7 @@ func NewProvider(config *config.Config, db *sql.DB) *Provider {
 	auctionService := service.NewAuctionService(auctionRepository)
 
 	userHandler := handlers.NewUserHandler(userService,validator)
-	auctionHandler := handlers.NewAuctionHandler(auctionService)
+	auctionHandler := handlers.NewAuctionHandler(auctionService,validator)
 	healthHandler := handlers.NewHealthHandler()
 
 	return &Provider{

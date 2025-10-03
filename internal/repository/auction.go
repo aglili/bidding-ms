@@ -7,6 +7,7 @@ import (
 
 	"github.com/aglili/auction-app/internal/domain"
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 type AuctionRepository struct {
@@ -102,7 +103,7 @@ func (r *AuctionRepository) GetAuction(ctx context.Context, auctionID uuid.UUID)
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
+			return nil, ErrNotFound
 		}
 		return nil, err
 	}
@@ -126,4 +127,68 @@ func (r *AuctionRepository) GetAuction(ctx context.Context, auctionID uuid.UUID)
 	auction.Images = images
 
 	return auction, nil
+}
+
+
+
+func (r *AuctionRepository) GetUserAuctions(ctx context.Context, userID uuid.UUID, page, limit int) ([]*domain.Auction, int, error) {
+	offset := (page - 1) * limit
+
+	query := `
+		SELECT 
+			a.id,
+			a.seller_id,
+			a.title,
+			a.description,
+			a.starting_price,
+			a.current_price,
+			a.status,
+			a.start_time,
+			a.end_time,
+			a.created_at,
+			COALESCE(ARRAY_AGG(ai.image_url) FILTER (WHERE ai.image_url IS NOT NULL), '{}') AS images
+		FROM auctions a
+		LEFT JOIN auction_images ai ON ai.auction_id = a.id
+		WHERE a.seller_id = $1
+		GROUP BY a.id
+		ORDER BY a.created_at DESC
+		LIMIT $2 OFFSET $3
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, userID, limit, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	var auctions []*domain.Auction
+	for rows.Next() {
+		auction := &domain.Auction{}
+		err := rows.Scan(
+			&auction.ID,
+			&auction.SellerID,
+			&auction.Title,
+			&auction.Description,
+			&auction.StartingPrice,
+			&auction.CurrentPrice,
+			&auction.Status,
+			&auction.StartTime,
+			&auction.EndTime,
+			&auction.CreatedAt,
+			pq.Array(&auction.Images), // ✅ scan array of images
+		)
+		if err != nil {
+			return nil, 0, err
+		}
+		auctions = append(auctions, auction)
+	}
+
+	// total count
+	countQuery := `SELECT COUNT(*) FROM auctions WHERE seller_id = $1`
+	var total int
+	if err := r.db.QueryRowContext(ctx, countQuery, userID).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+
+	return auctions, total, nil
 }

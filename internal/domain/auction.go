@@ -43,9 +43,11 @@ type AuctionResponse struct {
 type AuctionRepository interface {
 	CreateAuction(ctx context.Context, auction *Auction, sellerID uuid.UUID, imageURLs []string) (*Auction, error)
 	GetAuction(ctx context.Context, auctionID uuid.UUID) (*Auction, error)
+	GetUserAuctions(ctx context.Context, userID uuid.UUID, page, limit int) ([]*Auction, int, error)
 }
 
 type AuctionService interface {
 	CreateAuction(ctx context.Context, auction *Auction, sellerID uuid.UUID, imageURLs []string) (*Auction, error)
 	GetAuction(ctx context.Context, auctionID uuid.UUID) (*Auction, error)
+	GetUserAuctions(ctx context.Context,userID uuid.UUID,page,limit int) ([]*Auction,int,error)
 }
