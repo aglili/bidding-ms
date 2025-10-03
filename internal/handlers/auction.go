@@ -13,13 +13,13 @@ import (
 )
 
 type AuctionHandler struct {
-	service domain.AuctionService
+	service   domain.AuctionService
 	validator *validator.Validate
 }
 
-func NewAuctionHandler(service domain.AuctionService,validator *validator.Validate) *AuctionHandler {
+func NewAuctionHandler(service domain.AuctionService, validator *validator.Validate) *AuctionHandler {
 	return &AuctionHandler{
-		service: service,
+		service:   service,
 		validator: validator,
 	}
 }
@@ -86,9 +86,6 @@ func (h *AuctionHandler) CreateAuctionHandler(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, utils.SuccessResponse("auction created successfully", createdAuction))
 }
 
-
-
-
 func (h *AuctionHandler) GetAuction(ctx *gin.Context) {
 	auctionID := ctx.Param("id")
 	if auctionID == "" {
@@ -123,9 +120,6 @@ func (h *AuctionHandler) GetAuction(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, utils.SuccessResponse("successfully fetched auction", auctionResponse))
 }
 
-
-
-
 func (h *AuctionHandler) GetUserAuctions(ctx *gin.Context) {
 	userID := ctx.GetString("user_id")
 	if userID == "" {
@@ -139,8 +133,8 @@ func (h *AuctionHandler) GetUserAuctions(ctx *gin.Context) {
 		return
 	}
 
-	page := utils.GetQueryInt(ctx,"page",1)
-	limit := utils.GetQueryInt(ctx,"limit",10)
+	page := utils.GetQueryInt(ctx, "page", 1)
+	limit := utils.GetQueryInt(ctx, "limit", 10)
 
 	if page < 1 {
 		page = 1
@@ -150,29 +144,28 @@ func (h *AuctionHandler) GetUserAuctions(ctx *gin.Context) {
 		limit = 10
 	}
 
-
-	auctions,total,err :=  h.service.GetUserAuctions(ctx.Request.Context(),uid,page,limit)
-	if err != nil{
-		utils.RespondWithError(ctx,err,"failed to fetch auctions")
+	auctions, total, err := h.service.GetUserAuctions(ctx.Request.Context(), uid, page, limit)
+	if err != nil {
+		utils.RespondWithError(ctx, err, "failed to fetch auctions")
 		return
 	}
 
 	auctionResponse := make([]domain.Auction, 0, len(auctions))
-	for _,auction := range auctions{
+	for _, auction := range auctions {
 		auctionResponse = append(auctionResponse, domain.Auction{
-			ID: auction.ID,
-			Title: auction.Title,
-			Description: auction.Description,
-			Status: auction.Status,
+			ID:            auction.ID,
+			Title:         auction.Title,
+			Description:   auction.Description,
+			Status:        auction.Status,
 			StartingPrice: auction.StartingPrice,
-			CurrentPrice: auction.CurrentPrice,
-			StartTime: auction.StartTime,
-			EndTime: auction.EndTime,
-			CreatedAt: auction.CreatedAt,
-			Images: auction.Images,
+			CurrentPrice:  auction.CurrentPrice,
+			StartTime:     auction.StartTime,
+			EndTime:       auction.EndTime,
+			CreatedAt:     auction.CreatedAt,
+			Images:        auction.Images,
 		})
 	}
-	response := utils.PaginatedResponse("successfuly fetched auctions",auctionResponse,page,limit,total)
+	response := utils.PaginatedResponse("successfuly fetched auctions", auctionResponse, page, limit, total)
 
-	ctx.JSON(http.StatusOK,response)
+	ctx.JSON(http.StatusOK, response)
 }

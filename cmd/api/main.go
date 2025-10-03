@@ -19,7 +19,7 @@ func main() {
 	}
 	defer db.Close()
 
-	redis,err := config.ConnectToRedis(cfg)
+	redis, err := config.ConnectToRedis(cfg)
 	if err != nil {
 		log.Fatalf("failed to connect to redis : %v", err)
 	}

@@ -129,8 +129,6 @@ func (r *AuctionRepository) GetAuction(ctx context.Context, auctionID uuid.UUID)
 	return auction, nil
 }
 
-
-
 func (r *AuctionRepository) GetUserAuctions(ctx context.Context, userID uuid.UUID, page, limit int) ([]*domain.Auction, int, error) {
 	offset := (page - 1) * limit
 
@@ -192,7 +190,6 @@ func (r *AuctionRepository) GetUserAuctions(ctx context.Context, userID uuid.UUI
 
 	return auctions, total, nil
 }
-
 
 func (r *AuctionRepository) UpdateCurrentPrice(ctx context.Context, auctionID uuid.UUID, amount float64) error {
 	_, err := r.db.ExecContext(ctx,

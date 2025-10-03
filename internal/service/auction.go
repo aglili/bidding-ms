@@ -34,19 +34,16 @@ func (s *AuctionService) CreateAuction(ctx context.Context, auction *domain.Auct
 func (s *AuctionService) GetAuction(ctx context.Context, auctionID uuid.UUID) (*domain.Auction, error) {
 	auction, err := s.repository.GetAuction(ctx, auctionID)
 	if err != nil {
-		if errors.Is(err,repository.ErrNotFound){
-			return  nil, utils.NewAppError(err,"auction not found",utils.ErrCodeNotFound,http.StatusNotFound)
+		if errors.Is(err, repository.ErrNotFound) {
+			return nil, utils.NewAppError(err, "auction not found", utils.ErrCodeNotFound, http.StatusNotFound)
 		}
 
-		return  nil, utils.NewAppError(err,"failed to fetch auction",utils.ErrCodeInternal,http.StatusInternalServerError)
+		return nil, utils.NewAppError(err, "failed to fetch auction", utils.ErrCodeInternal, http.StatusInternalServerError)
 	}
-
 
 	return auction, nil
 }
 
-
-
-func (s *AuctionService) GetUserAuctions(ctx context.Context,userID uuid.UUID,page,limit int) ([]*domain.Auction,int,error){
-	return s.repository.GetUserAuctions(ctx,userID,page,limit)
+func (s *AuctionService) GetUserAuctions(ctx context.Context, userID uuid.UUID, page, limit int) ([]*domain.Auction, int, error) {
+	return s.repository.GetUserAuctions(ctx, userID, page, limit)
 }

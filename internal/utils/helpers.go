@@ -6,8 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
-
 func GetQueryInt(ctx *gin.Context, key string, defaultValue int) int {
 	valStr := ctx.Query(key)
 	if valStr == "" {
@@ -20,12 +18,10 @@ func GetQueryInt(ctx *gin.Context, key string, defaultValue int) int {
 	return val
 }
 
-
-
-func GetParamStr(ctx *gin.Context, key string, defaultValue string) string{
+func GetParamStr(ctx *gin.Context, key string, defaultValue string) string {
 	valStr := ctx.Param(key)
-	if valStr == ""{
+	if valStr == "" {
 		return defaultValue
 	}
-	return  valStr
+	return valStr
 }

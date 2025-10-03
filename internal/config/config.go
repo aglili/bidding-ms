@@ -15,7 +15,7 @@ type Config struct {
 	AppPort   string
 	AppEnv    string
 	SecretKey string
-	RedisURL   string
+	RedisURL  string
 }
 
 func getEnvOrDefault(key, defaultValue string) string {
@@ -38,6 +38,6 @@ func LoadConfig() *Config {
 		AppPort:   getEnvOrDefault("APP_PORT", ":6000"),
 		AppEnv:    getEnvOrDefault("APP_ENV", "production"),
 		SecretKey: getEnvOrDefault("SECRET_KEY", "default_key_trial"),
-		RedisURL: getEnvOrDefault("REDIS_URL",""),
+		RedisURL:  getEnvOrDefault("REDIS_URL", ""),
 	}
 }

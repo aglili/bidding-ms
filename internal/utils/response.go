@@ -19,7 +19,7 @@ const (
 	ErrCodeConflict      = "CONFLICT"
 	ErrCodeUnauthorized  = "UNAUTHORIZED"
 	ErrCodeForbidden     = "FORBIDDEN"
-	ErrCodeNotAllowed   =  "NOT_ALLOWED"
+	ErrCodeNotAllowed    = "NOT_ALLOWED"
 )
 
 // AppError wraps errors with HTTP status codes and error codes
@@ -80,7 +80,6 @@ func SuccessResponse(message string, data any) APIResponse {
 	}
 }
 
-
 func ErrorResponse(message string, err error) APIResponse {
 	response := APIResponse{
 		Success: false,
@@ -96,28 +95,24 @@ func ErrorResponse(message string, err error) APIResponse {
 	return response
 }
 
-
-
-
-func RespondWithError(ctx *gin.Context,err error, defaultMessage string){
+func RespondWithError(ctx *gin.Context, err error, defaultMessage string) {
 	var appErr *AppError
-	if errors.As(err,&appErr){
-		response := ErrorResponse(appErr.Message,appErr.Err)
-		if response.Error != nil{
+	if errors.As(err, &appErr) {
+		response := ErrorResponse(appErr.Message, appErr.Err)
+		if response.Error != nil {
 			response.Error.Code = appErr.Code
 		}
-		ctx.JSON(appErr.StatusCode,response)
+		ctx.JSON(appErr.StatusCode, response)
 		return
 	}
 
 	// fallback
-	response := ErrorResponse(defaultMessage,err)
+	response := ErrorResponse(defaultMessage, err)
 	if response.Error != nil {
 		response.Error.Code = ErrCodeInternal
 	}
-	ctx.JSON(http.StatusInternalServerError,response)
+	ctx.JSON(http.StatusInternalServerError, response)
 }
-
 
 func getValidationMessage(fe validator.FieldError) string {
 	switch fe.Tag() {
@@ -133,8 +128,6 @@ func getValidationMessage(fe validator.FieldError) string {
 		return "invalid value"
 	}
 }
-
-
 
 func RespondWithValidationError(ctx *gin.Context, err error) {
 	var ve validator.ValidationErrors
@@ -162,15 +155,12 @@ func RespondWithValidationError(ctx *gin.Context, err error) {
 	}
 }
 
-
 type PaginationMeta struct {
 	Page       int `json:"page"`
 	Limit      int `json:"limit"`
 	Total      int `json:"total"`
 	TotalPages int `json:"total_pages"`
 }
-
-
 
 func PaginatedResponse(message string, data interface{}, page, limit, total int) APIResponse {
 	totalPages := int(math.Ceil(float64(total) / float64(limit)))

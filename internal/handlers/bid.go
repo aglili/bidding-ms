@@ -11,29 +11,21 @@ import (
 	"github.com/google/uuid"
 )
 
-
-
-
 type BidHandler struct {
 	bidService domain.BidService
-	validator *validator.Validate
+	validator  *validator.Validate
 }
 
-
-
-func NewBidHandler(service domain.BidService,validator *validator.Validate) *BidHandler{
-	return  &BidHandler{
+func NewBidHandler(service domain.BidService, validator *validator.Validate) *BidHandler {
+	return &BidHandler{
 		bidService: service,
-		validator: validator,
+		validator:  validator,
 	}
 }
-
 
 type CreateBidRequest struct {
 	Amount float64 `json:"amount" binding:"required,gt=0"`
 }
-
-
 
 func (h *BidHandler) CreateBid(ctx *gin.Context) {
 	userID := ctx.GetString("user_id")
@@ -56,7 +48,7 @@ func (h *BidHandler) CreateBid(ctx *gin.Context) {
 		return
 	}
 
-	auctionIDString := utils.GetParamStr(ctx,"id","")
+	auctionIDString := utils.GetParamStr(ctx, "id", "")
 
 	auctionID, err := uuid.Parse(auctionIDString)
 	if err != nil {
@@ -68,21 +60,18 @@ func (h *BidHandler) CreateBid(ctx *gin.Context) {
 		return
 	}
 
-
 	var req CreateBidRequest
 
-	if err := ctx.BindJSON(&req);err != nil{
-		utils.RespondWithValidationError(ctx,err)
+	if err := ctx.BindJSON(&req); err != nil {
+		utils.RespondWithValidationError(ctx, err)
 		return
 	}
 
-
-	err = h.bidService.CreateBid(ctx,auctionID,uid,req.Amount)
+	err = h.bidService.CreateBid(ctx, auctionID, uid, req.Amount)
 	if err != nil {
-		utils.RespondWithError(ctx,err,"failed to create bid")
+		utils.RespondWithError(ctx, err, "failed to create bid")
 		return
 	}
 
-
-	ctx.JSON(http.StatusOK,utils.SuccessResponse("bid created successfully",nil))
+	ctx.JSON(http.StatusOK, utils.SuccessResponse("bid created successfully", nil))
 }

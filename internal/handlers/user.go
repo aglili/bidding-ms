@@ -13,13 +13,13 @@ import (
 )
 
 type UserHandler struct {
-	service domain.UserService
+	service   domain.UserService
 	validator *validator.Validate
 }
 
-func NewUserHandler(service domain.UserService,validator *validator.Validate) *UserHandler {
+func NewUserHandler(service domain.UserService, validator *validator.Validate) *UserHandler {
 	return &UserHandler{
-		service: service,
+		service:   service,
 		validator: validator,
 	}
 }
@@ -33,7 +33,7 @@ func (h *UserHandler) CreateUserHandler(ctx *gin.Context) {
 	var req CreateUserRequest
 
 	if err := ctx.BindJSON(&req); err != nil {
-		utils.RespondWithValidationError(ctx,err)
+		utils.RespondWithValidationError(ctx, err)
 		return
 	}
 
@@ -44,12 +44,12 @@ func (h *UserHandler) CreateUserHandler(ctx *gin.Context) {
 
 	createdUser, err := h.service.CreateUser(ctx.Request.Context(), user)
 	if err != nil {
-		utils.RespondWithError(ctx,err,"failed to create user")
+		utils.RespondWithError(ctx, err, "failed to create user")
 		return
 	}
 
 	if err := h.createUserSession(ctx, createdUser.ID.String()); err != nil {
-		utils.RespondWithError(ctx,err,"failed to create session")
+		utils.RespondWithError(ctx, err, "failed to create session")
 		return
 	}
 
@@ -143,16 +143,14 @@ func (h *UserHandler) GetUserProfile(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, utils.SuccessResponse("Successfully fetched user profile", userResponse))
 }
 
-
-
 func (h *UserHandler) Logout(ctx *gin.Context) {
 	session := sessions.Default(ctx)
 	session.Clear()
 
-	if err := session.Save(); err != nil{
-		utils.RespondWithError(ctx,err,"failed to logout")
+	if err := session.Save(); err != nil {
+		utils.RespondWithError(ctx, err, "failed to logout")
 		return
 	}
 
-	ctx.JSON(http.StatusOK,utils.SuccessResponse("logout success",nil))
+	ctx.JSON(http.StatusOK, utils.SuccessResponse("logout success", nil))
 }

@@ -54,16 +54,16 @@ func (s *UserService) CreateUser(ctx context.Context, user *domain.User) (*domai
 func (s *UserService) LoginUser(ctx context.Context, payload *domain.UserLogin) (*domain.User, error) {
 	existing_user, err := s.repository.GetUserByEmail(ctx, payload.Email)
 	if err != nil {
-		if errors.Is(err,repository.ErrNotFound){
-			return  nil , utils.NewAppError(err,"invalid credentials",utils.ErrCodeUnauthorized,http.StatusUnauthorized)
+		if errors.Is(err, repository.ErrNotFound) {
+			return nil, utils.NewAppError(err, "invalid credentials", utils.ErrCodeUnauthorized, http.StatusUnauthorized)
 		}
 
-		return  nil,utils.NewAppError(err,"login failed",utils.ErrCodeDatabaseError,http.StatusInternalServerError)
+		return nil, utils.NewAppError(err, "login failed", utils.ErrCodeDatabaseError, http.StatusInternalServerError)
 	}
 
 	validPassword := utils.ComparePassword(payload.Password, existing_user.Password)
 	if !validPassword {
-		return nil, utils.NewAppError(fmt.Errorf("invalid credentials"),"invalid credentials",utils.ErrCodeUnauthorized,http.StatusUnauthorized)
+		return nil, utils.NewAppError(fmt.Errorf("invalid credentials"), "invalid credentials", utils.ErrCodeUnauthorized, http.StatusUnauthorized)
 	}
 
 	existing_user.Password = ""
@@ -80,10 +80,7 @@ func (s *UserService) GetUserProfile(ctx context.Context, userID uuid.UUID) (*do
 		return nil, utils.NewAppError(err, "failed to retrieve user", utils.ErrCodeDatabaseError, http.StatusInternalServerError)
 	}
 
-
 	user.Password = ""
 
 	return user, nil
 }
-
-

@@ -13,18 +13,17 @@ import (
 
 type Provider struct {
 	DB             *sql.DB
-	Validator   *validator.Validate
+	Validator      *validator.Validate
 	UserHandler    *handlers.UserHandler
 	HealthHandler  *handlers.HealthHandler
 	AuctionHandler *handlers.AuctionHandler
-	BidHandler *handlers.BidHandler
+	BidHandler     *handlers.BidHandler
 	Config         *config.Config
 }
 
 func NewProvider(config *config.Config, db *sql.DB, redis *redis.Client) *Provider {
 
 	validator := validator.New()
-
 
 	// resositories
 	userRepository := repository.NewUserRepository(db)
@@ -34,11 +33,11 @@ func NewProvider(config *config.Config, db *sql.DB, redis *redis.Client) *Provid
 	// services
 	userService := service.NewUserService(userRepository)
 	auctionService := service.NewAuctionService(auctionRepository)
-	bidService := service.NewBidService(bidRepository,auctionRepository,redis)
+	bidService := service.NewBidService(bidRepository, auctionRepository, redis)
 
-	userHandler := handlers.NewUserHandler(userService,validator)
-	auctionHandler := handlers.NewAuctionHandler(auctionService,validator)
-	bidHandler := handlers.NewBidHandler(bidService,validator)
+	userHandler := handlers.NewUserHandler(userService, validator)
+	auctionHandler := handlers.NewAuctionHandler(auctionService, validator)
+	bidHandler := handlers.NewBidHandler(bidService, validator)
 	healthHandler := handlers.NewHealthHandler()
 
 	return &Provider{
@@ -47,6 +46,6 @@ func NewProvider(config *config.Config, db *sql.DB, redis *redis.Client) *Provid
 		UserHandler:    userHandler,
 		DB:             db,
 		AuctionHandler: auctionHandler,
-		BidHandler: bidHandler,
+		BidHandler:     bidHandler,
 	}
 }
