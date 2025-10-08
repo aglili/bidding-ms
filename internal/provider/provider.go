@@ -42,10 +42,9 @@ func NewProvider(config *config.Config, db *sql.DB, redis *redis.Client) *Provid
 	subscriber := events.NewEventSubscriber(redis)
 
 	// services
-	emailService := service.NewEmailService(config,redis)
 	userService := service.NewUserService(userRepository)
 	auctionService := service.NewAuctionService(auctionRepository)
-	notificationService := service.NewNotificationService(userRepository, auctionRepository, wsConnManager,emailService)
+	notificationService := service.NewNotificationService(userRepository, auctionRepository, wsConnManager)
 	bidService := service.NewBidService(bidRepository, auctionRepository, redis)
 	
 
@@ -80,7 +79,6 @@ func NewProvider(config *config.Config, db *sql.DB, redis *redis.Client) *Provid
 
 	go scheduler.Start(ctx)
 
-	go emailService.StartWorker(ctx)
 
 	return &Provider{
 		HealthHandler:  healthHandler,

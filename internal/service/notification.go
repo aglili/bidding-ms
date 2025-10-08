@@ -14,20 +14,18 @@ type NotificationService struct {
 	userRepo    domain.UserRepository
 	auctionRepo domain.AuctionRepository
 	connManager *websocket.ConnectionManager
-	emailService *EmailService
 }
 
-func NewNotificationService(userRepo domain.UserRepository, auctionRepo domain.AuctionRepository, connManager *websocket.ConnectionManager,emailService *EmailService) *NotificationService {
+func NewNotificationService(userRepo domain.UserRepository, auctionRepo domain.AuctionRepository, connManager *websocket.ConnectionManager) *NotificationService {
 	return &NotificationService{
 		userRepo:    userRepo,
 		connManager: connManager,
 		auctionRepo: auctionRepo,
-		emailService: emailService,
 	}
 }
 
 func (s *NotificationService) NotifyAuctionWon(ctx context.Context, userID, auctionID uuid.UUID, price float64) error {
-	user, err := s.userRepo.GetUserByID(ctx, userID)
+	_, err := s.userRepo.GetUserByID(ctx, userID)
 	if err != nil {
 		return fmt.Errorf("failed to get user: %w", err)
 	}
@@ -51,19 +49,6 @@ func (s *NotificationService) NotifyAuctionWon(ctx context.Context, userID, auct
 	if err := s.connManager.SendToUser(userID, message); err != nil {
 		log.Printf("Failed to send WebSocket notification: %v", err)
 
-	}
-
-	emailData := map[string]any{
-		"auction_id":  auction.ID,
-		"title":       auction.Title,
-		"description": auction.Description,
-		"price":       price,
-		"payment_link": "paystack.com",
-	}
-
-
-	if err := s.emailService.EnqueueEmail(ctx,user.Email,"Auction Won","auction_won.html",emailData);err != nil {
-		log.Printf("Failed to send WebSocket notification: %v", err)
 	}
 
 	return nil
