@@ -18,4 +18,3 @@ type PaymentResponse struct {
 		Reference        string `json:"reference"`
 	} `json:"data"`
 }
-

@@ -45,9 +45,8 @@ func NewProvider(config *config.Config, db *sql.DB, redis *redis.Client) *Provid
 	paymentService := service.NewPaymentService(config)
 	userService := service.NewUserService(userRepository)
 	auctionService := service.NewAuctionService(auctionRepository)
-	notificationService := service.NewNotificationService(userRepository, auctionRepository, wsConnManager,paymentService)
+	notificationService := service.NewNotificationService(userRepository, auctionRepository, wsConnManager, paymentService)
 	bidService := service.NewBidService(bidRepository, auctionRepository, redis)
-	
 
 	// event handlers
 	auctionEndedEventHandler := events.NewAuctionEventEndedHandler(notificationService, auctionRepository)
@@ -79,7 +78,6 @@ func NewProvider(config *config.Config, db *sql.DB, redis *redis.Client) *Provid
 	}()
 
 	go scheduler.Start(ctx)
-
 
 	return &Provider{
 		HealthHandler:  healthHandler,

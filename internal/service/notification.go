@@ -11,17 +11,17 @@ import (
 )
 
 type NotificationService struct {
-	userRepo    domain.UserRepository
-	auctionRepo domain.AuctionRepository
-	connManager *websocket.ConnectionManager
+	userRepo       domain.UserRepository
+	auctionRepo    domain.AuctionRepository
+	connManager    *websocket.ConnectionManager
 	paymentService *PaymentService
 }
 
 func NewNotificationService(userRepo domain.UserRepository, auctionRepo domain.AuctionRepository, connManager *websocket.ConnectionManager, paymentService *PaymentService) *NotificationService {
 	return &NotificationService{
-		userRepo:    userRepo,
-		connManager: connManager,
-		auctionRepo: auctionRepo,
+		userRepo:       userRepo,
+		connManager:    connManager,
+		auctionRepo:    auctionRepo,
 		paymentService: paymentService,
 	}
 }
@@ -37,9 +37,9 @@ func (s *NotificationService) NotifyAuctionWon(ctx context.Context, userID, auct
 		return fmt.Errorf("failed to get auction: %w", err)
 	}
 
-	reference := fmt.Sprintf("auction_won:%s",auctionID)
+	reference := fmt.Sprintf("auction_won:%s", auctionID)
 
-	paymentData,err :=   s.paymentService.InitializePayment(ctx,user.Email,int64(price),reference)
+	paymentData, err := s.paymentService.InitializePayment(ctx, user.Email, int64(price), reference)
 	if err != nil {
 		return fmt.Errorf("failed to initialize auction payment: %w", err)
 	}
@@ -47,11 +47,11 @@ func (s *NotificationService) NotifyAuctionWon(ctx context.Context, userID, auct
 	message := websocket.NotificationMessage{
 		Type: "auction_won",
 		Payload: map[string]any{
-			"auction_id":  auction.ID,
-			"title":       auction.Title,
-			"description": auction.Description,
-			"price":       price,
-			"message":     fmt.Sprintf("Congratulations! You won the auction for $%.2f", price),
+			"auction_id":   auction.ID,
+			"title":        auction.Title,
+			"description":  auction.Description,
+			"price":        price,
+			"message":      fmt.Sprintf("Congratulations! You won the auction for $%.2f", price),
 			"payment_data": paymentData,
 		},
 	}
