@@ -14,18 +14,20 @@ type NotificationService struct {
 	userRepo    domain.UserRepository
 	auctionRepo domain.AuctionRepository
 	connManager *websocket.ConnectionManager
+	paymentService *PaymentService
 }
 
-func NewNotificationService(userRepo domain.UserRepository, auctionRepo domain.AuctionRepository, connManager *websocket.ConnectionManager) *NotificationService {
+func NewNotificationService(userRepo domain.UserRepository, auctionRepo domain.AuctionRepository, connManager *websocket.ConnectionManager, paymentService *PaymentService) *NotificationService {
 	return &NotificationService{
 		userRepo:    userRepo,
 		connManager: connManager,
 		auctionRepo: auctionRepo,
+		paymentService: paymentService,
 	}
 }
 
 func (s *NotificationService) NotifyAuctionWon(ctx context.Context, userID, auctionID uuid.UUID, price float64) error {
-	_, err := s.userRepo.GetUserByID(ctx, userID)
+	user, err := s.userRepo.GetUserByID(ctx, userID)
 	if err != nil {
 		return fmt.Errorf("failed to get user: %w", err)
 	}
@@ -33,6 +35,13 @@ func (s *NotificationService) NotifyAuctionWon(ctx context.Context, userID, auct
 	auction, err := s.auctionRepo.GetAuction(ctx, auctionID)
 	if err != nil {
 		return fmt.Errorf("failed to get auction: %w", err)
+	}
+
+	reference := fmt.Sprintf("auction_won:%s",auctionID)
+
+	paymentData,err :=   s.paymentService.InitializePayment(ctx,user.Email,int64(price),reference)
+	if err != nil {
+		return fmt.Errorf("failed to initialize auction payment: %w", err)
 	}
 
 	message := websocket.NotificationMessage{
@@ -43,6 +52,7 @@ func (s *NotificationService) NotifyAuctionWon(ctx context.Context, userID, auct
 			"description": auction.Description,
 			"price":       price,
 			"message":     fmt.Sprintf("Congratulations! You won the auction for $%.2f", price),
+			"payment_data": paymentData,
 		},
 	}
 

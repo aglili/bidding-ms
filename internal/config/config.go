@@ -16,10 +16,7 @@ type Config struct {
 	AppEnv    string
 	SecretKey string
 	RedisURL  string
-	SmtpSenderEmail string
-	SmtpPass string
-	SmtpPort string
-	SmtpHost string
+	PaystackSecretKey string
 }
 
 func getEnvOrDefault(key, defaultValue string) string {
@@ -43,9 +40,6 @@ func LoadConfig() *Config {
 		AppEnv:    getEnvOrDefault("APP_ENV", "production"),
 		SecretKey: getEnvOrDefault("SECRET_KEY", "default_key_trial"),
 		RedisURL:  getEnvOrDefault("REDIS_URL", ""),
-		SmtpSenderEmail: getEnvOrDefault("SMTP_EMAIL",""),
-		SmtpPass: getEnvOrDefault("SMTP_PASSWORD",""),
-		SmtpPort: getEnvOrDefault("SMTP_PORT",""),
-		SmtpHost: getEnvOrDefault("SMTP_HOST",""),
+		PaystackSecretKey: getEnvOrDefault("PAYSTACK_SECRET_KEY",""),
 	}
 }

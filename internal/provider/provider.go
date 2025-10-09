@@ -42,9 +42,10 @@ func NewProvider(config *config.Config, db *sql.DB, redis *redis.Client) *Provid
 	subscriber := events.NewEventSubscriber(redis)
 
 	// services
+	paymentService := service.NewPaymentService(config)
 	userService := service.NewUserService(userRepository)
 	auctionService := service.NewAuctionService(auctionRepository)
-	notificationService := service.NewNotificationService(userRepository, auctionRepository, wsConnManager)
+	notificationService := service.NewNotificationService(userRepository, auctionRepository, wsConnManager,paymentService)
 	bidService := service.NewBidService(bidRepository, auctionRepository, redis)
 	
 
