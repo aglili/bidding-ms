@@ -54,6 +54,9 @@ func SetupRoutes(prov *provider.Provider) http.Handler {
 	auctions.GET("/ws", prov.WsHandler.HandleWSConnections)
 	auctions.GET("/open", prov.AuctionHandler.GetOpenAuctions)
 
+	payments := v1.Group("/payments")
+	payments.POST("/webhook",prov.PaymentHandler.WebhookEndpoint)
+
 	return mux
 }
 

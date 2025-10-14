@@ -24,6 +24,7 @@ type Provider struct {
 	AuctionHandler *handlers.AuctionHandler
 	BidHandler     *handlers.BidHandler
 	WsHandler      *handlers.WebSocketHandler
+	PaymentHandler *handlers.PaymentHandler
 	Config         *config.Config
 }
 
@@ -58,6 +59,7 @@ func NewProvider(config *config.Config, db *sql.DB, redis *redis.Client) *Provid
 	bidHandler := handlers.NewBidHandler(bidService, validator)
 	wsHandler := handlers.NewWebSocketHandler(wsConnManager)
 	healthHandler := handlers.NewHealthHandler()
+	paymentHandler := handlers.NewPaymentHandler(config)
 
 	// scheduler
 	scheduler := scheduler.NewAuctionScheduler(auctionRepository, redis, publisher)
@@ -87,5 +89,6 @@ func NewProvider(config *config.Config, db *sql.DB, redis *redis.Client) *Provid
 		AuctionHandler: auctionHandler,
 		BidHandler:     bidHandler,
 		WsHandler:      wsHandler,
+		PaymentHandler: paymentHandler,
 	}
 }
