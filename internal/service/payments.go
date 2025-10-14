@@ -27,6 +27,7 @@ func (s *PaymentService) InitializePayment(ctx context.Context, email string, am
 		Email:     email,
 		Amount:    amount,
 		Reference: reference,
+		Channels: []string{"card","bank_transfer","apple_pay","mobile_money","qr"},
 	}
 
 	jsonData, err := json.Marshal(payload)

@@ -7,6 +7,7 @@ type PaymentRequest struct {
 	Reference   string                 `json:"reference,omitempty"`
 	CallbackURL string                 `json:"callback_url,omitempty"`
 	Metadata    map[string]interface{} `json:"metadata,omitempty"`
+	Channels   []string `json:"channels"`
 }
 
 type PaymentResponse struct {

@@ -37,7 +37,7 @@ func (s *NotificationService) NotifyAuctionWon(ctx context.Context, userID, auct
 		return fmt.Errorf("failed to get auction: %w", err)
 	}
 
-	reference := fmt.Sprintf("auction_won:%s", auctionID)
+	reference := fmt.Sprintf("auction-won=%s", auctionID)
 
 	paymentData, err := s.paymentService.InitializePayment(ctx, user.Email, int64(price), reference)
 	if err != nil {
